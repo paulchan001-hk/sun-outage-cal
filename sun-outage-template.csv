@@ -1,0 +1,4 @@
+id,site,lat,lat_hemisphere,lon,lon_hemisphere,orbital_slot_east,year,band,frequency_ghz,antenna_m,timezone
+1,Hong Kong,22.3193,North,114.1694,East,122,2026,Ku,12.25,2.4,8
+2,Singapore,1.3521,North,103.8198,East,100.5,2026,Ka,20.20,1.8,8
+3,Sydney,33.8688,South,151.2093,East,120,2026,C,4.00,4.5,10
