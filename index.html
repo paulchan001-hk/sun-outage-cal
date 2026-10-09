@@ -150,7 +150,7 @@
             <option value="100.5">AsiaSat 5 — 100.5° E</option>
             <option value="120">AsiaSat 6 — 120° E</option>
             <option value="105.5">AsiaSat 7 — 105.5° E</option>
-            <option value="105.3">AsiaSat 8 — 105.3° E</option>
+            <option value="105.5">AsiaSat 8 — 105.5° E</option>
             <option value="122" selected>AsiaSat 9 — 122° E</option>
             <option value="custom">Custom orbital slot</option>
           </select>
@@ -171,14 +171,14 @@
 
           <label for="band">Receive band</label>
           <select id="band">
-            <option value="3.62">C — 3.62 GHz (AsiaSat tool)</option>
-            <option value="11.00" selected>Ku — 11.00 GHz (AsiaSat tool)</option>
-            <option value="20.20">Ka — 20.20 GHz</option>
+            <option value="3.9">C — 3.9 GHz</option>
+            <option value="12.25" selected>Ku — 12.25 GHz</option>
+            <option value="19.20">Ka — 19.20 GHz</option>
             <option value="custom">Custom frequency</option>
           </select>
           <label for="freq">Downlink frequency (GHz)</label>
           <input id="freq" type="number" min="1" max="50" step="0.01" value="11.00" />
-          <div class="hint">AsiaSat website uses 3.62 GHz for C and 11 GHz for Ku. Override this for the actual carrier or for Ka.</div>
+          <div class="hint"> Default assumes 3.9 GHz for C, 12.25 GHz for Ku and 19.2GHz for Ka. Override this for the actual carrier frequency.</div>
 
           <label for="dia">Antenna diameter (m)</label>
           <input id="dia" type="number" min="0.3" max="32" step="0.01" value="2.4" />
@@ -206,15 +206,15 @@
           <div class="table-scroll" id="tables">
             <p class="empty">Enter a station and an orbital slot, then calculate. Spring and autumn windows are both evaluated.</p>
           </div>
-          <p class="hint" id="remark" hidden>Remark: rough sun-outage estimation only. Start and end in the table are local time. The UTC column is GMT, matching the AsiaSat website output. To reproduce the website, use C 3.62 GHz or Ku 11 GHz and an AsiaSat fleet slot.</p>
+          <p class="hint" id="remark" hidden>Remark: rough sun-outage estimation only. Start and end in the table are local time.</p>
 
           <details>
             <summary>Method and assumptions</summary>
             <div class="method">
               <p>The satellite is treated as geostationary at zero inclination. Look angles use Earth radius 6,378.137 km and GEO radius 42,164.17 km. Azimuth is from true north, clockwise.</p>
               <p>Half-power beamwidth is <code>θ = k λ / D</code>, with λ = 0.299792458 / f(GHz) metres and k = 70 unless changed. Nominal receive centres are C 4.00 GHz, Ku 12.25 GHz and Ka 20.20 GHz. A higher frequency narrows the beam, so Ka events are shorter and cover fewer days than C or Ku on the same antenna.</p>
-              <p>Timing follows the AsiaSat website formula in sun-outage-cal.min.js. Outage angle is AOA = 11/(D×f) + 0.25°, where 0.25° is the solar radius. Event days and GMT clock times use their equinox geometry, equation of time, and solar-noon base. Known fleet slots use the script’s exact GMT constants. Any other slot uses 12:00 GMT minus longitude/15. Frequency and orbital slot remain user inputs, including Ka.</p>
-              <p>Not included: inclination, eccentricity, rain fade, link margin, polarisation, or the difference between a 3 dB geometric crossing and the C/N at which a particular carrier fails. For a carrier-specific threshold, use the actual link budget.</p>
+              <p>Outage angle is AOA = 11/(D×f) + 0.25°, where 0.25° is the solar radius. Event days and GMT clock times use their equinox geometry, equation of time, and solar-noon base. Known fleet slots use the script’s exact GMT constants. Any other slot uses 12:00 GMT minus longitude/15. Frequency and orbital slot remain user inputs, including Ka.</p>
+              <p>Not included: inclination, eccentricity, rain fade, link margin, polarisation, or the difference between a 3 dB geometric crossing and the C/N at which a particular carrier fails.</p>
             </div>
           </details>
           <details id="batchCard">
