@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Sun Outage Calculator | AsiaSat</title>
+  <meta name="description" content="Estimate geostationary satellite sun-outage dates and durations for any orbital slot, including C, Ku and Ka band." />
+  <style>
+    :root {
+      --navy: #0b2545;
+      --navy-2: #13315c;
+      --red: #c8102e;
+      --gold: #c4a15a;
+      --ink: #1c2834;
+      --muted: #5d6b7a;
+      --line: #e3e8ee;
+      --bg: #f3f6f9;
+      --card: #ffffff;
+      --ok: #0e7c66;
+      --warn: #9a6700;
+      --shadow: 0 10px 30px rgba(11, 37, 69, 0.08);
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body {
+      font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+      color: var(--ink);
+      background: var(--bg);
+      line-height: 1.5;
+    }
+    header {
+      background: linear-gradient(135deg, var(--navy) 0%, var(--navy-2) 70%, #1b4f8a 100%);
+      color: #fff;
+      padding: 28px 20px 22px;
+    }
+    .wrap { max-width: 1100px; margin: 0 auto; }
+    .brand {
+      display: flex; align-items: center; gap: 12px; letter-spacing: 0.14em;
+      font-size: 13px; font-weight: 700; text-transform: uppercase;
+    }
+    .mark {
+      width: 34px; height: 34px; border-radius: 8px; background: var(--red);
+      display: grid; place-items: center; font-weight: 800; letter-spacing: 0;
+    }
+    h1 { margin: 14px 0 6px; font-size: 32px; font-weight: 650; letter-spacing: -0.03em; }
+    header p { margin: 0; max-width: 760px; color: #d5e2f2; }
+    main { padding: 22px 20px 48px; }
+    .notice {
+      background: #fff8ee; border: 1px solid #f0dfb8; border-left: 4px solid var(--gold);
+      padding: 12px 14px; border-radius: 10px; color: #5c4a22; font-size: 14px; margin-bottom: 18px;
+    }
+    .grid { display: grid; grid-template-columns: 380px 1fr; gap: 18px; align-items: start; }
+    .card {
+      background: var(--card); border: 1px solid var(--line); border-radius: 14px;
+      box-shadow: var(--shadow); padding: 18px;
+    }
+    h2 { margin: 0 0 12px; font-size: 18px; }
+    h3 { margin: 16px 0 8px; font-size: 15px; }
+    label { display: block; font-size: 13px; font-weight: 650; margin: 10px 0 6px; color: var(--navy); }
+    .row { display: flex; gap: 8px; }
+    .row > * { flex: 1; }
+    input, select, button, textarea {
+      font: inherit; color: var(--ink);
+    }
+    input, select {
+      width: 100%; border: 1px solid #cfd7e1; border-radius: 8px; padding: 9px 10px; background: #fff;
+    }
+    input:focus, select:focus { outline: 2px solid #9ec0e8; border-color: #7aa7d8; }
+    .hint { color: var(--muted); font-size: 12px; margin-top: 4px; }
+    .seg { display: flex; gap: 6px; }
+    .seg label {
+      margin: 0; flex: 1; text-align: center; border: 1px solid #cfd7e1; border-radius: 8px;
+      padding: 8px 6px; cursor: pointer; font-weight: 600; background: #fff;
+    }
+    .seg input { display: none; }
+    .seg input:checked + span, .seg label:has(input:checked) {
+      background: var(--navy); color: #fff; border-color: var(--navy);
+    }
+    .actions { display: flex; gap: 8px; margin-top: 16px; flex-wrap: wrap; }
+    button {
+      border: 0; border-radius: 8px; padding: 10px 14px; cursor: pointer; font-weight: 700;
+    }
+    .primary { background: var(--red); color: #fff; }
+    .primary:hover { background: #a50d26; }
+    .ghost { background: #eef2f6; color: var(--navy); }
+    .ghost:hover { background: #e2e8ef; }
+    .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 14px; }
+    .stat { background: #f7fafc; border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; }
+    .stat b { display: block; font-size: 18px; color: var(--navy); }
+    .stat span { color: var(--muted); font-size: 12px; }
+    table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    th, td { text-align: left; padding: 8px 8px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+    th { font-size: 12px; color: var(--muted); font-weight: 700; }
+    .season { margin-top: 8px; font-size: 13px; font-weight: 750; color: var(--navy-2); letter-spacing: 0.04em; text-transform: uppercase; }
+    .empty { color: var(--muted); padding: 18px 4px; }
+    .warn { color: var(--warn); font-size: 13px; margin: 8px 0; }
+    .ok { color: var(--ok); }
+    details { margin-top: 14px; }
+    summary { cursor: pointer; font-weight: 700; color: var(--navy); }
+    .method { font-size: 14px; color: #314052; }
+    .method code { background: #f1f4f8; padding: 1px 5px; border-radius: 4px; }
+    footer { color: var(--muted); font-size: 12px; padding: 8px 20px 28px; }
+    .table-scroll { overflow-x: auto; }
+    .badge { display: inline-block; background: #e8f4ef; color: var(--ok); border-radius: 99px; padding: 2px 8px; font-size: 12px; font-weight: 700; }
+    @media (max-width: 900px) {
+      .grid, .stats { grid-template-columns: 1fr; }
+      h1 { font-size: 26px; }
+    }
+    @media print {
+      header { background: #fff; color: #000; }
+      .actions, details, .notice, footer, #batchCard { display: none; }
+      body { background: #fff; }
+      .card { box-shadow: none; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="wrap">
+      <div class="brand"><div class="mark">A</div> AsiaSat · Resources / Tools</div>
+      <h1>Sun Outage Calculator</h1>
+      <p>Estimate the dates and local times when the Sun passes through a receive antenna beam pointed at a geostationary satellite. Any orbital slot. C, Ku and Ka band.</p>
+    </div>
+  </header>
+  <main>
+    <div class="wrap">
+      <div class="notice">
+        The actual outage depends on signal level, modulation, antenna size, pointing accuracy and the model used. This tool is a geometric estimate. The results may differ from the observed event by about 5 to 10 minutes. Satellite inclination and station-keeping are not modelled.
+      </div>
+      <div class="grid">
+        <section class="card" id="formCard">
+          <h2>Earth station and satellite</h2>
+          <label for="site">Site name <span class="hint">(optional, for the report)</span></label>
+          <input id="site" value="Hong Kong" />
+
+          <label>Latitude</label>
+          <div class="row">
+            <input id="lat" type="number" min="0" max="81" step="0.0001" value="22.3193" />
+            <select id="latH"><option value="1">North</option><option value="-1">South</option></select>
+          </div>
+
+          <label>Longitude</label>
+          <div class="row">
+            <input id="lon" type="number" min="0" max="180" step="0.0001" value="114.1694" />
+            <select id="lonH"><option value="1">East</option><option value="-1">West</option></select>
+          </div>
+
+          <label for="sat">Orbital slot</label>
+          <select id="sat">
+            <option value="100.5">AsiaSat 5 — 100.5° E</option>
+            <option value="120">AsiaSat 6 — 120° E</option>
+            <option value="105.5">AsiaSat 7 — 105.5° E</option>
+            <option value="105.3">AsiaSat 8 — 105.3° E</option>
+            <option value="122" selected>AsiaSat 9 — 122° E</option>
+            <option value="custom">Custom orbital slot</option>
+          </select>
+          <label for="slot">Satellite longitude (° East, West negative)</label>
+          <input id="slot" type="number" min="-180" max="180" step="0.01" value="122" />
+          <div class="hint">Presets fill this field. Edit it to use any GEO slot, for example 147.5.</div>
+
+          <div class="row">
+            <div>
+              <label for="year">Year</label>
+              <input id="year" type="number" min="2020" max="2045" step="1" value="2026" />
+            </div>
+            <div>
+              <label for="tz">Time zone (UTC offset)</label>
+              <input id="tz" type="number" min="-12" max="14" step="0.5" value="8" />
+            </div>
+          </div>
+
+          <label for="band">Receive band</label>
+          <select id="band">
+            <option value="3.62">C — 3.62 GHz (AsiaSat tool)</option>
+            <option value="11.00" selected>Ku — 11.00 GHz (AsiaSat tool)</option>
+            <option value="20.20">Ka — 20.20 GHz</option>
+            <option value="custom">Custom frequency</option>
+          </select>
+          <label for="freq">Downlink frequency (GHz)</label>
+          <input id="freq" type="number" min="1" max="50" step="0.01" value="11.00" />
+          <div class="hint">AsiaSat website uses 3.62 GHz for C and 11 GHz for Ku. Override this for the actual carrier or for Ka.</div>
+
+          <label for="dia">Antenna diameter (m)</label>
+          <input id="dia" type="number" min="0.3" max="32" step="0.01" value="2.4" />
+
+          <label for="kfact">Beamwidth factor k in θ = k λ / D</label>
+          <input id="kfact" type="number" min="55" max="85" step="0.5" value="70" />
+          <div class="hint">70 is the usual planning value for a parabolic reflector. Outage is inside the half-power beam plus the solar disk.</div>
+
+          <div class="actions">
+            <button class="primary" id="calcBtn" type="button">Calculate</button>
+            <button class="ghost" id="resetBtn" type="button">Reset</button>
+            <button class="ghost" id="csvBtn" type="button">Download CSV</button>
+          </div>
+        </section>
+
+        <section class="card">
+          <h2>Result <span class="badge" id="badge">Ready</span></h2>
+          <div id="warn" class="warn" hidden></div>
+          <div class="stats" id="stats" hidden>
+            <div class="stat"><b id="sAz">—</b><span>Azimuth, deg</span></div>
+            <div class="stat"><b id="sEl">—</b><span>Elevation, deg</span></div>
+            <div class="stat"><b id="sBw">—</b><span>Outage angle</span></div>
+            <div class="stat"><b id="sPk">—</b><span>Longest event</span></div>
+          </div>
+          <div class="table-scroll" id="tables">
+            <p class="empty">Enter a station and an orbital slot, then calculate. Spring and autumn windows are both evaluated.</p>
+          </div>
+          <p class="hint" id="remark" hidden>Remark: rough sun-outage estimation only. Start and end in the table are local time. The UTC column is GMT, matching the AsiaSat website output. To reproduce the website, use C 3.62 GHz or Ku 11 GHz and an AsiaSat fleet slot.</p>
+
+          <details>
+            <summary>Method and assumptions</summary>
+            <div class="method">
+              <p>The satellite is treated as geostationary at zero inclination. Look angles use Earth radius 6,378.137 km and GEO radius 42,164.17 km. Azimuth is from true north, clockwise.</p>
+              <p>Half-power beamwidth is <code>θ = k λ / D</code>, with λ = 0.299792458 / f(GHz) metres and k = 70 unless changed. Nominal receive centres are C 4.00 GHz, Ku 12.25 GHz and Ka 20.20 GHz. A higher frequency narrows the beam, so Ka events are shorter and cover fewer days than C or Ku on the same antenna.</p>
+              <p>Timing follows the AsiaSat website formula in sun-outage-cal.min.js. Outage angle is AOA = 11/(D×f) + 0.25°, where 0.25° is the solar radius. Event days and GMT clock times use their equinox geometry, equation of time, and solar-noon base. Known fleet slots use the script’s exact GMT constants. Any other slot uses 12:00 GMT minus longitude/15. Frequency and orbital slot remain user inputs, including Ka.</p>
+              <p>Not included: inclination, eccentricity, rain fade, link margin, polarisation, or the difference between a 3 dB geometric crossing and the C/N at which a particular carrier fails. For a carrier-specific threshold, use the actual link budget.</p>
+            </div>
+          </details>
+          <details id="batchCard">
+            <summary>Batch CSV</summary>
+            <div class="method">
+              <p>Each row is one station. Columns: <code>id, site, lat, lat_hemisphere, lon, lon_hemisphere, orbital_slot_east, year, band, frequency_ghz, antenna_m, timezone</code>. Use North or South, and East or West, as whole words. Band is C, Ku, Ka or Custom.</p>
+              <div class="actions">
+                <button class="ghost" id="tplBtn" type="button">Download template</button>
+                <button class="ghost" id="batchBtn" type="button">Run batch file</button>
+                <input id="batchFile" type="file" accept=".csv,text/csv" hidden />
+              </div>
+              <p class="hint" id="batchMsg"></p>
+            </div>
+          </details>
+        </section>
+      </div>
+    </div>
+  </main>
+  <footer>
+    <div class="wrap"> Paul CHAN | AsiaSat Engineering © Asia Satellite Telecommunications Co. Ltd.</div>
+  </footer>
+
+  <script>
+    const $ = (id) => document.getElementById(id);
+    const PRESETS = {
+      "100.5": 100.5,
+      "120": 120,
+      "105.5": 105.5,
+      "105.3": 105.3,
+      "122": 122
+    };
+    const BANDS = { "3.62": 3.62, "11.00": 11.0, "20.20": 20.2 };
+
+    $("sat").addEventListener("change", () => {
+      const v = $("sat").value;
+      if (PRESETS[v] != null) $("slot").value = PRESETS[v];
+    });
+    $("slot").addEventListener("input", () => {
+      const n = Number($("slot").value);
+      const hit = Object.entries(PRESETS).find(([, lon]) => Math.abs(lon - n) < 0.001);
+      if (!hit) $("sat").value = "custom";
+    });
+    $("band").addEventListener("change", () => {
+      if (BANDS[$("band").value] != null) $("freq").value = BANDS[$("band").value].toFixed(2);
+    });
+    $("freq").addEventListener("input", () => {
+      const f = Number($("freq").value);
+      const hit = Object.entries(BANDS).find(([, hz]) => Math.abs(hz - f) < 0.001);
+      if (!hit) $("band").value = "custom";
+    });
+    $("lon").addEventListener("change", suggestTz);
+    $("lonH").addEventListener("change", suggestTz);
+
+    function suggestTz() {
+      const lon = signed($("lon").value, $("lonH").value);
+      if (Number.isFinite(lon)) $("tz").value = Math.round(lon / 15 * 2) / 2;
+    }
+
+    function signed(mag, hem) {
+      const n = Math.abs(Number(mag));
+      return n * Number(hem);
+    }
+
+    function norm180(deg) {
+      let x = ((deg + 180) % 360 + 360) % 360 - 180;
+      return x;
+    }
+
+    function look(lat, lon, sat) {
+      const phi = lat * Math.PI / 180;
+      const dL = norm180(sat - lon) * Math.PI / 180;
+      const Re = 6378.137, Rs = 42164.17;
+      const cosg = Math.cos(phi) * Math.cos(dL);
+      const sing = Math.sqrt(Math.max(0, 1 - cosg * cosg));
+      const el = Math.atan2(cosg - Re / Rs, sing) * 180 / Math.PI;
+      const az = Math.atan2(Math.sin(dL), -Math.sin(phi) * Math.cos(dL)) * 180 / Math.PI;
+      return { az: (az + 360) % 360, el };
+    }
+
+    function sunAltAz(date, lat, lon) {
+      const JD = date.getTime() / 86400000 + 2440587.5;
+      const n = JD - 2451545.0;
+      const L = (280.460 + 0.9856474 * n) % 360;
+      const g = ((357.528 + 0.9856003 * n) % 360) * Math.PI / 180;
+      const lam = ((L + 1.915 * Math.sin(g) + 0.020 * Math.sin(2 * g)) % 360) * Math.PI / 180;
+      const eps = (23.439 - 0.0000004 * n) * Math.PI / 180;
+      const dec = Math.asin(Math.sin(eps) * Math.sin(lam));
+      const ra = Math.atan2(Math.cos(eps) * Math.sin(lam), Math.cos(lam));
+      const gmst = ((280.46061837 + 360.98564736629 * n) % 360) * Math.PI / 180;
+      const ha = gmst + lon * Math.PI / 180 - ra;
+      const phi = lat * Math.PI / 180;
+      const sAlt = Math.sin(phi) * Math.sin(dec) + Math.cos(phi) * Math.cos(dec) * Math.cos(ha);
+      const alt = Math.asin(Math.max(-1, Math.min(1, sAlt))) * 180 / Math.PI;
+      const az = Math.atan2(-Math.sin(ha), Math.tan(dec) * Math.cos(phi) - Math.sin(phi) * Math.cos(ha)) * 180 / Math.PI;
+      const R = 1.00014 - 0.01671 * Math.cos(g) - 0.00014 * Math.cos(2 * g);
+      const srad = 0.2666 / R;
+      return { alt, az: (az + 360) % 360, srad };
+    }
+
+    function sep(az1, el1, az2, el2) {
+      const a1 = az1 * Math.PI / 180, e1 = el1 * Math.PI / 180;
+      const a2 = az2 * Math.PI / 180, e2 = el2 * Math.PI / 180;
+      const x1 = Math.cos(e1) * Math.sin(a1), y1 = Math.cos(e1) * Math.cos(a1), z1 = Math.sin(e1);
+      const x2 = Math.cos(e2) * Math.sin(a2), y2 = Math.cos(e2) * Math.cos(a2), z2 = Math.sin(e2);
+      const d = Math.max(-1, Math.min(1, x1 * x2 + y1 * y2 + z1 * z2));
+      return Math.acos(d) * 180 / Math.PI;
+    }
+
+    function pad(n) { return String(n).padStart(2, "0"); }
+    function fmtTime(date, tz) {
+      const t = new Date(date.getTime() + tz * 3600000);
+      return pad(t.getUTCHours()) + ":" + pad(t.getUTCMinutes());
+    }
+    function fmtDate(date, tz) {
+      const t = new Date(date.getTime() + tz * 3600000);
+      return t.getUTCFullYear() + "-" + pad(t.getUTCMonth() + 1) + "-" + pad(t.getUTCDate());
+    }
+    function fmtUtc(date) {
+      return pad(date.getUTCHours()) + ":" + pad(date.getUTCMinutes()) + " UTC";
+    }
+
+    function predict(lat, lon, sat, year, freq, dia, k, tz) {
+      const lookAng = look(lat, lon, sat);
+      const e = Math.PI / 180;
+      const AOA = 11 / (dia * freq) + 0.25;
+      const feb = year % 4 ? 28 : 29;
+      const bases = { 105.5: [58, 4], 100.5: [18, 5], 120: [58, 3], 122: [51, 3], 105.3: [59, 4] };
+      const known = Object.keys(bases).map(Number).find((slot) => Math.abs(slot - sat) < 0.05);
+      let baseMin, baseHour;
+      if (known != null) {
+        baseMin = bases[known][0];
+        baseHour = bases[known][1];
+      } else {
+        const total = Math.round(12 * 60 - sat / 15 * 60);
+        baseHour = Math.floor(total / 60);
+        baseMin = total - baseHour * 60;
+      }
+      const A5 = Math.sqrt(Math.pow(42164.196, 2) + Math.pow(6378.1599, 2) - 2 * 42164.196 * 6378.1599 * Math.cos(lat * e) * Math.cos((lon - sat) * e));
+      const A7 = Math.asin(Math.max(-1, Math.min(1, 6378.1599 * Math.sin(lat * e) / A5))) / e;
+      const B3 = Math.asin(Math.max(-1, Math.min(1, 6378.1599 * Math.cos(lat * e) * Math.sin((lon - sat) * e) / A5))) / e;
+      const eot = (ang) => 9.87 * Math.sin(2 * ang * e) - 7.53 * Math.cos(ang * e) - 1.5 * Math.sin(ang * e);
+      const roll = (mins, hour) => {
+        while (mins >= 60) { mins -= 60; hour += 1; }
+        while (mins < 0) { mins += 60; hour -= 1; }
+        return [mins, hour];
+      };
+      const localFromGmt = (hour, min) => {
+        let total = hour * 60 + min + tz * 60;
+        let dayShift = 0;
+        while (total >= 1440) { total -= 1440; dayShift += 1; }
+        while (total < 0) { total += 1440; dayShift -= 1; }
+        return { hm: pad(Math.floor(total / 60)) + ":" + pad(total % 60), dayShift };
+      };
+      const dated = (month, day, shift) => {
+        const dt = new Date(Date.UTC(year, month - 1, day));
+        dt.setUTCDate(dt.getUTCDate() + shift);
+        return dt.getUTCFullYear() + "-" + pad(dt.getUTCMonth() + 1) + "-" + pad(dt.getUTCDate());
+      };
+      const seasonRows = (season) => {
+        const NOD = Math.floor(AOA * 2 / 0.257534) + 1;
+        const rows = [];
+        if (season === "Around Mar-Apr") {
+          const arg = Math.max(-1, Math.min(1, (A7 + AOA) / 23.5));
+          const D = Math.asin(arg) / e;
+          const le = D >= 0 ? Math.floor(D + 0.999999) : -Math.floor(Math.abs(D - 0.999999));
+          for (let A = 0; A <= NOD; A++) {
+            const N = le - A;
+            const h = 21 - N;
+            const c = eot(360 * (0 - N - 1) / 364);
+            const L = Math.pow(AOA - (Math.abs(D - le) + A) * 0.257534, 2);
+            if (AOA * AOA <= L) break;
+            const d = Math.sqrt(AOA * AOA - L);
+            const p = (B3 - d) * 1440 / 360;
+            const u = (B3 + d) * 1440 / 360;
+            let [sm, sh] = roll(baseMin + Math.floor(p - c - 0.999999), baseHour);
+            let [em, eh] = roll(baseMin + Math.floor(u - c), baseHour);
+            let day = h, mon = 3;
+            if (h > 31) { day = h - 31; mon = 4; }
+            else if (h <= 0) { day = feb + h; mon = 2; }
+            const ls = localFromGmt(sh, sm), leT = localFromGmt(eh, em);
+            rows.push({ season, date: dated(mon, day, 0), start: ls.hm, peak: ls.hm, end: leT.hm, startUtc: pad(sh) + ":" + pad(sm) + " GMT", endUtc: pad(eh) + ":" + pad(em) + " GMT", dur: eh * 60 + em - (sh * 60 + sm), minSep: Math.round(AOA * 1000) / 1000 });
+          }
+        } else {
+          const arg = Math.max(-1, Math.min(1, (A7 - AOA) / 23.5));
+          const D = Math.asin(arg) / e;
+          const le = D >= 0 ? Math.floor(D + 0.999999) : -Math.floor(Math.abs(D) + 0.999999);
+          for (let A = 0; A <= NOD; A++) {
+            const N = le + A;
+            const h = 23 + N;
+            const S = eot(360 * (N + 185) / 364);
+            const L = Math.pow(AOA - (Math.abs(le - D) + A) * 0.257534, 2);
+            if (AOA * AOA <= L) break;
+            const d = Math.sqrt(AOA * AOA - L);
+            const p = (B3 - d) * 1440 / 360;
+            const u = (B3 + d) * 1440 / 360;
+            let [sm, sh] = roll(baseMin + Math.floor(p - S + 0.999999), baseHour);
+            let [em, eh] = roll(baseMin + Math.floor(u - S + 1.999999), baseHour);
+            let day = h, mon = 9;
+            if (h > 30) { day = h - 30; mon = 10; }
+            else if (h <= 0) { day = 31 + h; mon = 8; }
+            const ls = localFromGmt(sh, sm), leT = localFromGmt(eh, em);
+            rows.push({ season, date: dated(mon, day, 0), start: ls.hm, peak: ls.hm, end: leT.hm, startUtc: pad(sh) + ":" + pad(sm) + " GMT", endUtc: pad(eh) + ":" + pad(em) + " GMT", dur: eh * 60 + em - (sh * 60 + sm), minSep: Math.round(AOA * 1000) / 1000 });
+          }
+          if (A7 < 0 && rows.length) rows.shift();
+        }
+        return rows;
+      };
+      const events = seasonRows("Around Mar-Apr").concat(seasonRows("Around Sep-Oct"));
+      return { lookAng, hpbw: AOA, events, freq, dia };
+    }
+
+    let last = null;
+
+    function readForm() {
+      const lat = signed($("lat").value, $("latH").value);
+      const lon = signed($("lon").value, $("lonH").value);
+      const sat = Number($("slot").value);
+      const year = Number($("year").value);
+      const freq = Number($("freq").value);
+      const dia = Number($("dia").value);
+      const k = Number($("kfact").value);
+      const tz = Number($("tz").value);
+      if (![lat, lon, sat, year, freq, dia, k, tz].every(Number.isFinite)) throw new Error("Please complete every numeric field.");
+      if (Math.abs(lat) > 81) throw new Error("Latitude must be within 81°.");
+      if (Math.abs(lon) > 180) throw new Error("Longitude must be within 180°.");
+      if (sat < -180 || sat > 180) throw new Error("Orbital slot must be between -180° and 180°.");
+      if (year < 2020 || year > 2045) throw new Error("Year must be from 2020 to 2045.");
+      if (freq < 1 || freq > 50) throw new Error("Frequency must be from 1 to 50 GHz.");
+      if (dia < 0.3 || dia > 32) throw new Error("Antenna diameter must be from 0.3 to 32 m.");
+      return { lat, lon, sat, year, freq, dia, k, tz, site: $("site").value.trim() };
+    }
+
+    function render(result, input) {
+      last = { result, input };
+      $("badge").textContent = result.events.length ? "Estimated" : "No event";
+      $("stats").hidden = false;
+      $("remark").hidden = false;
+      $("sAz").textContent = result.lookAng.az.toFixed(1);
+      $("sEl").textContent = result.lookAng.el.toFixed(1);
+      $("sBw").textContent = result.hpbw.toFixed(2) + "°";
+      const peak = result.events.reduce((a, b) => (b.dur > a ? b.dur : a), 0);
+      $("sPk").textContent = peak ? peak.toFixed(1) + " min" : "—";
+      const warn = $("warn");
+      if (result.lookAng.el < 0) {
+        warn.hidden = false;
+        warn.textContent = "The satellite is below the horizon at this station. Results are not usable.";
+      } else if (result.lookAng.el < 5) {
+        warn.hidden = false;
+        warn.textContent = "Elevation is below 5°. Atmospheric effects and blocking may make the estimate unreliable.";
+      } else {
+        warn.hidden = true;
+      }
+      if (!result.events.length) {
+        $("tables").innerHTML = "<p class='empty'>No sun transit inside the beam for this antenna, band and year. A larger antenna or a lower frequency narrows or widens the window.</p>";
+        return;
+      }
+      const seasons = ["Around Mar-Apr", "Around Sep-Oct"];
+      let html = "";
+      seasons.forEach((name) => {
+        const rows = result.events.filter((e) => e.season === name);
+        if (!rows.length) return;
+        html += `<div class="season">${name}</div><table><thead><tr><th>Date</th><th>Start</th><th>Peak</th><th>End</th><th>Duration</th><th>AOA</th><th>GMT</th></tr></thead><tbody>`;
+        rows.forEach((e) => {
+          html += `<tr><td>${e.date}</td><td>${e.start}</td><td>${e.peak}</td><td>${e.end}</td><td>${e.dur.toFixed(1)} min</td><td>${e.minSep.toFixed(3)}°</td><td>${e.startUtc} – ${e.endUtc}</td></tr>`;
+        });
+        html += "</tbody></table>";
+      });
+      $("tables").innerHTML = html;
+    }
+
+    function calculate() {
+      try {
+        const input = readForm();
+        const result = predict(input.lat, input.lon, input.sat, input.year, input.freq, input.dia, input.k, input.tz);
+        render(result, input);
+      } catch (err) {
+        $("warn").hidden = false;
+        $("warn").textContent = err.message;
+      }
+    }
+
+    function csvEscape(v) {
+      const s = String(v ?? "");
+      return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+    }
+    function download(name, text) {
+      const blob = new Blob(["\uFEFF" + text], { type: "text/csv;charset=utf-8" });
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = name;
+      a.click();
+      URL.revokeObjectURL(a.href);
+    }
+
+    $("calcBtn").addEventListener("click", calculate);
+    $("resetBtn").addEventListener("click", () => {
+      $("site").value = "Hong Kong";
+      $("lat").value = "22.3193"; $("latH").value = "1";
+      $("lon").value = "114.1694"; $("lonH").value = "1";
+      $("sat").value = "122"; $("slot").value = "122";
+      $("year").value = "2026"; $("tz").value = "8";
+      $("band").value = "12.25"; $("freq").value = "12.25";
+      $("dia").value = "2.4"; $("kfact").value = "70";
+      $("tables").innerHTML = "<p class='empty'>Enter a station and an orbital slot, then calculate.</p>";
+      $("stats").hidden = true; $("remark").hidden = true; $("warn").hidden = true;
+      $("badge").textContent = "Ready";
+      last = null;
+    });
+    $("csvBtn").addEventListener("click", () => {
+      if (!last || !last.result.events.length) { calculate(); }
+      if (!last || !last.result.events.length) return;
+      const head = "site,orbital_slot_east,band_ghz,antenna_m,azimuth_deg,elevation_deg,hpbw_deg,season,date,start_local,peak_local,end_local,duration_min,min_sep_deg,start_utc,end_utc";
+      const lines = last.result.events.map((e) => [
+        last.input.site, last.input.sat, last.input.freq, last.input.dia,
+        last.result.lookAng.az.toFixed(2), last.result.lookAng.el.toFixed(2), last.result.hpbw.toFixed(3),
+        e.season, e.date, e.start, e.peak, e.end, e.dur, e.minSep, e.startUtc, e.endUtc
+      ].map(csvEscape).join(","));
+      download("sun-outage-result.csv", head + "\n" + lines.join("\n") + "\n");
+    });
+
+    if ($("tplBtn")) $("tplBtn").addEventListener("click", () => {
+      const head = "id,site,lat,lat_hemisphere,lon,lon_hemisphere,orbital_slot_east,year,band,frequency_ghz,antenna_m,timezone";
+      const sample = "1,Hong Kong,22.3193,North,114.1694,East,122,2026,Ku,12.25,2.4,8\n2,Singapore,1.3521,North,103.8198,East,100.5,2026,Ka,20.20,1.8,8\n3,Sydney,33.8688,South,151.2093,East,120,2026,C,4.00,4.5,10";
+      download("sun-outage-template.csv", head + "\n" + sample + "\n");
+    });
+    if ($("batchBtn")) $("batchBtn").addEventListener("click", () => $("batchFile").click());
+    if ($("batchFile")) $("batchFile").addEventListener("change", async (ev) => {
+      const file = ev.target.files[0];
+      if (!file) return;
+      const text = await file.text();
+      const rows = text.trim().split(/\r?\n/).filter(Boolean);
+      const header = rows.shift().split(",").map((s) => s.trim().toLowerCase());
+      const idx = (n) => header.indexOf(n);
+      const out = ["id,site,date,season,start_local,peak_local,end_local,duration_min,min_sep_deg,azimuth_deg,elevation_deg,hpbw_deg,note"];
+      let n = 0;
+      rows.forEach((line) => {
+        const c = line.split(",").map((s) => s.trim());
+        const hemisphereSign = (value, axis) => {
+          const v = String(value || "").trim().toLowerCase();
+          if (axis === "lat") return (v === "s" || v === "south") ? -1 : 1;
+          return (v === "w" || v === "west") ? -1 : 1;
+        };
+        try {
+          const lat = Math.abs(Number(c[idx("lat")])) * hemisphereSign(c[idx("lat_hemisphere")], "lat");
+          const lon = Math.abs(Number(c[idx("lon")])) * hemisphereSign(c[idx("lon_hemisphere")], "lon");
+          const sat = Number(c[idx("orbital_slot_east")]);
+          const year = Number(c[idx("year")]);
+          const freq = Number(c[idx("frequency_ghz")]);
+          const dia = Number(c[idx("antenna_m")]);
+          const tz = Number(c[idx("timezone")]);
+          const res = predict(lat, lon, sat, year, freq, dia, 70, tz);
+          if (!res.events.length) {
+            out.push([c[idx("id")], c[idx("site")], "", "", "", "", "", "", "", res.lookAng.az.toFixed(2), res.lookAng.el.toFixed(2), res.hpbw.toFixed(3), "no event in beam"].map(csvEscape).join(","));
+          }
+          res.events.forEach((e) => {
+            out.push([c[idx("id")], c[idx("site")], e.date, e.season, e.start, e.peak, e.end, e.dur, e.minSep, res.lookAng.az.toFixed(2), res.lookAng.el.toFixed(2), res.hpbw.toFixed(3), ""].map(csvEscape).join(","));
+          });
+          n++;
+        } catch (err) {
+          out.push([c[0] || "", "", "", "", "", "", "", "", "", "", "", "", "row error"].map(csvEscape).join(","));
+        }
+      });
+      download("sun-outage-batch-result.csv", out.join("\n") + "\n");
+      $("batchMsg").textContent = "Processed " + n + " row(s). Result CSV downloaded.";
+      ev.target.value = "";
+    });
+
+    calculate();
+  </script>
+</body>
+</html>
