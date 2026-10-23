@@ -212,7 +212,7 @@
             <summary>Method and assumptions</summary>
             <div class="method">
               <p>The satellite is treated as geostationary at zero inclination. Look angles use Earth radius 6,378.137 km and GEO radius 42,164.17 km. Azimuth is from true north, clockwise.</p>
-              <p>Half-power beamwidth is <code>θ = k λ / D</code>, with λ = 0.299792458 / f(GHz) metres and k = 70 unless changed. Nominal receive centres are C 4.00 GHz, Ku 12.25 GHz and Ka 20.20 GHz. A higher frequency narrows the beam, so Ka events are shorter and cover fewer days than C or Ku on the same antenna.</p>
+              <p>Half-power beamwidth is <code>θ = k λ / D</code>, with λ = 0.299792458 / f(GHz) metres and k = 70 unless changed.</p>
               <p>Outage angle is AOA = 11/(D×f) + 0.25°, where 0.25° is the solar radius. Event days and GMT clock times use their equinox geometry, equation of time, and solar-noon base. Known fleet slots use the script’s exact GMT constants. Any other slot uses 12:00 GMT minus longitude/15. Frequency and orbital slot remain user inputs, including Ka.</p>
               <p>Not included: inclination, eccentricity, rain fade, link margin, polarisation, or the difference between a 3 dB geometric crossing and the C/N at which a particular carrier fails.</p>
             </div>
