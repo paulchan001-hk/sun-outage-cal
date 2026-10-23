@@ -8,7 +8,7 @@ The is AsiaSat tool for user to estimate sun-outage period according to differen
 
 Estimate the dates and GMT times when the Sun passes through a receive antenna beam pointed at a geostationary satellite.
 
-- Fleet presets: AsiaSat 5 (100.5° E), AsiaSat 6 (120° E), AsiaSat 7 (105.5° E), AsiaSat 8 (105.3° E), AsiaSat 9 (122° E).
+- Fleet presets: AsiaSat 5 (100.5° E), AsiaSat 6 (120° E), AsiaSat 7 (105.5° E), AsiaSat 8 (105.5° E), AsiaSat 9 (122° E).
 - Any other GEO slot can be typed in. East is positive, West is negative.
 - C, Ku and Ka, or any downlink frequency
 - Single station and batch CSV.
